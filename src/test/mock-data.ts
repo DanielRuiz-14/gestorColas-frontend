@@ -1,0 +1,127 @@
+import type {
+  QueueEntryResponse,
+  TableResponse,
+  ReservationResponse,
+  RestaurantResponse,
+  RestaurantConfigResponse,
+} from "@/lib/types";
+
+export const mockRestaurant: RestaurantResponse = {
+  id: "rest-001",
+  name: "Test Restaurant",
+  slug: "test-restaurant",
+  address: "Calle Test 123",
+  phone: "+34 600 000 000",
+  description: "Great food",
+  openingHours: {},
+  qrCodeUrl: null,
+  active: true,
+  createdAt: "2026-01-01T00:00:00Z",
+  updatedAt: "2026-01-01T00:00:00Z",
+};
+
+export const mockConfig: RestaurantConfigResponse = {
+  id: "cfg-001",
+  restaurantId: "rest-001",
+  confirmationTimeoutMinutes: 5,
+  noshowGraceMinutes: 15,
+  avgTableDurationMinutes: 45,
+  reservationProtectionWindowMinutes: 30,
+  maxQueueSize: null,
+};
+
+export const mockQueueEntries: QueueEntryResponse[] = [
+  {
+    id: "q-001",
+    restaurantId: "rest-001",
+    customerName: "Alice",
+    customerPhone: null,
+    partySize: 2,
+    position: 1,
+    status: "WAITING",
+    estimatedWaitMinutes: 0,
+    notifiedAt: null,
+    walkIn: false,
+    createdAt: "2026-01-01T12:00:00Z",
+    updatedAt: "2026-01-01T12:00:00Z",
+  },
+  {
+    id: "q-002",
+    restaurantId: "rest-001",
+    customerName: "Bob",
+    customerPhone: "555-1234",
+    partySize: 4,
+    position: 2,
+    status: "NOTIFIED",
+    estimatedWaitMinutes: 45,
+    notifiedAt: "2026-01-01T12:30:00Z",
+    walkIn: true,
+    createdAt: "2026-01-01T12:05:00Z",
+    updatedAt: "2026-01-01T12:30:00Z",
+  },
+];
+
+export const mockTables: TableResponse[] = [
+  {
+    id: "t-001",
+    restaurantId: "rest-001",
+    label: "Mesa 1",
+    capacity: 4,
+    status: "FREE",
+    zone: null,
+    reservedSoon: false,
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "t-002",
+    restaurantId: "rest-001",
+    label: "Mesa 2",
+    capacity: 6,
+    status: "OCCUPIED",
+    zone: "Terraza",
+    reservedSoon: false,
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "t-003",
+    restaurantId: "rest-001",
+    label: "Mesa 3",
+    capacity: 2,
+    status: "FREE",
+    zone: null,
+    reservedSoon: true,
+    createdAt: "2026-01-01T00:00:00Z",
+    updatedAt: "2026-01-01T00:00:00Z",
+  },
+];
+
+export const mockReservations: ReservationResponse[] = [
+  {
+    id: "r-001",
+    restaurantId: "rest-001",
+    tableId: null,
+    customerName: "Carlos",
+    customerPhone: "+34 611 222 333",
+    partySize: 3,
+    reservedAt: "2026-01-01T20:00:00Z",
+    status: "BOOKED",
+    notes: "Mesa ventana",
+    createdAt: "2026-01-01T10:00:00Z",
+    updatedAt: "2026-01-01T10:00:00Z",
+  },
+  {
+    id: "r-002",
+    restaurantId: "rest-001",
+    tableId: "t-002",
+    customerName: "Diana",
+    customerPhone: null,
+    partySize: 2,
+    reservedAt: "2026-01-01T19:00:00Z",
+    status: "SEATED",
+    notes: null,
+    createdAt: "2026-01-01T09:00:00Z",
+    updatedAt: "2026-01-01T19:10:00Z",
+  },
+];
