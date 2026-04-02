@@ -124,6 +124,17 @@ export async function login(
   return handleResponse(res);
 }
 
+export async function register(
+  data: import("./types").RegisterRequest,
+): Promise<import("./types").AuthResponse> {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function refreshToken(
   token: string,
 ): Promise<import("./types").AuthResponse> {

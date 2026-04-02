@@ -8,8 +8,8 @@ export interface AuthResponse {
 
 export interface RegisterRequest {
   restaurantName: string;
-  slug: string;
-  address: string;
+  restaurantSlug: string;
+  restaurantAddress: string;
   email: string;
   password: string;
   staffName: string;

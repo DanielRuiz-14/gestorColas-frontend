@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { login } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Entrando..." : "Iniciar sesión"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              ¿No tienes cuenta?{" "}
+              <Link href="/register" className="font-medium text-primary hover:underline">
+                Registra tu restaurante
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
