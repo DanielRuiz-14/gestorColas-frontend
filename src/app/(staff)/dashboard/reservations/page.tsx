@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useReservations, useAvailableTables } from "@/lib/hooks";
+import { useReservations, useTables } from "@/lib/hooks";
 import { useReservationUpdates } from "@/lib/use-stomp";
-import { staffPost, staffPatch } from "@/lib/api";
+import { staffPost } from "@/lib/api";
 import type { ReservationResponse, ReservationStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TableSeatPicker } from "@/components/table-seat-picker";
 
 const statusConfig: Record<
   ReservationStatus,
@@ -60,6 +61,7 @@ export default function ReservationsPage() {
   const [formSize, setFormSize] = useState(2);
   const [formDate, setFormDate] = useState("");
   const [formTime, setFormTime] = useState("");
+  const [formTableId, setFormTableId] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
   const statusParam =
@@ -68,7 +70,39 @@ export default function ReservationsPage() {
     statusParam,
     filterDate || undefined,
   );
-  const { data: availableTables } = useAvailableTables(seatRes?.partySize ?? 0);
+  const { data: tables, mutate: mutateTables } = useTables();
+
+  const tableLabelById = useMemo(
+    () => new Map((tables ?? []).map((table) => [table.id, table.label])),
+    [tables],
+  );
+
+  const assignableTables = useMemo(
+    () =>
+      (tables ?? [])
+        .filter(
+          (table) =>
+            table.status === "FREE" &&
+            !table.reservedSoon &&
+            table.capacity >= formSize,
+        )
+        .sort(
+          (a, b) => a.capacity - b.capacity || a.label.localeCompare(b.label, "es"),
+        ),
+    [formSize, tables],
+  );
+
+  useEffect(() => {
+    if (assignableTables.length === 0) {
+      setFormTableId("");
+      return;
+    }
+
+    const stillValid = assignableTables.some((table) => table.id === formTableId);
+    if (!stillValid) {
+      setFormTableId(assignableTables[0].id);
+    }
+  }, [assignableTables, formTableId]);
 
   useReservationUpdates(
     useCallback(() => {
@@ -99,6 +133,7 @@ export default function ReservationsPage() {
   async function handleSeat(tableId: string) {
     if (!seatRes) return;
     await action(seatRes.id, "seat", { tableId });
+    mutateTables();
     setSeatRes(null);
   }
 
@@ -111,6 +146,7 @@ export default function ReservationsPage() {
         customerPhone: formPhone || undefined,
         partySize: formSize,
         reservedAt,
+        tableId: formTableId,
         notes: formNotes || undefined,
       });
       mutate();
@@ -128,6 +164,7 @@ export default function ReservationsPage() {
     setFormSize(2);
     setFormDate("");
     setFormTime("");
+    setFormTableId("");
     setFormNotes("");
   }
 
@@ -140,10 +177,11 @@ export default function ReservationsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Reservas</h1>
         <Button
           size="sm"
+          className="w-full justify-center sm:w-auto"
           onClick={() => {
             resetForm();
             setCreateOpen(true);
@@ -190,6 +228,9 @@ export default function ReservationsPage() {
         )}
         {filtered?.map((res) => {
           const cfg = statusConfig[res.status];
+          const assignedTableLabel = res.tableId
+            ? tableLabelById.get(res.tableId) ?? `Mesa ${res.tableId}`
+            : null;
           return (
             <Card key={res.id}>
               <CardContent className="flex items-center gap-4 py-3">
@@ -207,7 +248,7 @@ export default function ReservationsPage() {
                     <span className="font-medium truncate">
                       {res.customerName}
                     </span>
-                    <Badge variant={cfg.variant} className="text-xs">
+                    <Badge variant={cfg.variant}>
                       {cfg.label}
                     </Badge>
                   </div>
@@ -216,6 +257,7 @@ export default function ReservationsPage() {
                       <Users className="h-3 w-3" />
                       {res.partySize}
                     </span>
+                    {assignedTableLabel && <span>{assignedTableLabel}</span>}
                     {res.customerPhone && <span>{res.customerPhone}</span>}
                     {res.notes && (
                       <span className="truncate italic">{res.notes}</span>
@@ -288,26 +330,12 @@ export default function ReservationsPage() {
               Sentar a {seatRes?.customerName} (grupo de {seatRes?.partySize})
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            {availableTables?.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No hay mesas disponibles
-              </p>
-            )}
-            {availableTables?.map((table) => (
-              <Button
-                key={table.id}
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => handleSeat(table.id)}
-              >
-                <span>{table.label}</span>
-                <span className="text-muted-foreground">
-                  {table.capacity} personas
-                </span>
-              </Button>
-            ))}
-          </div>
+          <TableSeatPicker
+            partySize={seatRes?.partySize ?? 0}
+            tables={tables}
+            onSelect={handleSeat}
+            emptyMessage="No hay mesas libres disponibles para esta reserva."
+          />
         </DialogContent>
       </Dialog>
 
@@ -319,24 +347,27 @@ export default function ReservationsPage() {
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
-              <Label>Nombre</Label>
+              <Label htmlFor="reservation-name">Nombre</Label>
               <Input
+                id="reservation-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Teléfono</Label>
+              <Label htmlFor="reservation-phone">Tel?fono</Label>
               <Input
+                id="reservation-phone"
                 type="tel"
                 value={formPhone}
                 onChange={(e) => setFormPhone(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Personas</Label>
+              <Label htmlFor="reservation-party-size">Personas</Label>
               <Input
+                id="reservation-party-size"
                 type="number"
                 min={1}
                 value={formSize}
@@ -346,8 +377,9 @@ export default function ReservationsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Fecha</Label>
+                <Label htmlFor="reservation-date">Fecha</Label>
                 <Input
+                  id="reservation-date"
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
@@ -355,8 +387,9 @@ export default function ReservationsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Hora</Label>
+                <Label htmlFor="reservation-time">Hora</Label>
                 <Input
+                  id="reservation-time"
                   type="time"
                   value={formTime}
                   onChange={(e) => setFormTime(e.target.value)}
@@ -365,8 +398,31 @@ export default function ReservationsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Notas</Label>
+              <Label htmlFor="reservation-table">Mesa</Label>
+              <select
+                id="reservation-table"
+                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-[0.95rem] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                value={formTableId}
+                onChange={(e) => setFormTableId(e.target.value)}
+                required
+              >
+                {assignableTables.length === 0 && (
+                  <option value="">No hay mesas libres compatibles</option>
+                )}
+                {assignableTables.map((table) => (
+                  <option key={table.id} value={table.id}>
+                    {table.label} · {table.capacity} personas
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-muted-foreground">
+                Solo se muestran mesas libres, sin reserva pendiente y con capacidad suficiente para esta reserva.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reservation-notes">Notas</Label>
               <Textarea
+                id="reservation-notes"
                 value={formNotes}
                 onChange={(e) => setFormNotes(e.target.value)}
                 rows={2}

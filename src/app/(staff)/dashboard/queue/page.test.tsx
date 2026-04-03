@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/render-utils";
-import { mockQueueEntries } from "@/test/mock-data";
+import { mockQueueEntries, mockTables } from "@/test/mock-data";
 import QueuePage from "./page";
 
 const mockMutate = vi.fn();
 
 vi.mock("@/lib/hooks", () => ({
   useQueue: () => ({ data: mockQueueEntries, mutate: mockMutate }),
-  useAvailableTables: () => ({ data: [] }),
+  useTables: () => ({ data: mockTables, mutate: vi.fn() }),
 }));
 
 vi.mock("@/lib/use-stomp", () => ({
@@ -43,6 +43,16 @@ describe("QueuePage", () => {
     renderWithProviders(<QueuePage />);
     expect(screen.getByText("Cola")).toBeInTheDocument();
     expect(screen.getByText("Walk-in")).toBeInTheDocument();
+  });
+
+  it("keeps the add button visible on small screens", () => {
+    renderWithProviders(<QueuePage />);
+
+    const title = screen.getByRole("heading", { name: "Cola" });
+    const addButton = screen.getByRole("button", { name: /walk-in/i });
+
+    expect(title.parentElement).toHaveClass("flex-col", "items-start");
+    expect(addButton).toHaveClass("w-full", "sm:w-auto");
   });
 
   it("shows queue entries with names and party sizes", () => {

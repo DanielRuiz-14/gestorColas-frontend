@@ -75,4 +75,34 @@ describe("DashboardPage", () => {
     expect(screen.getByText("Mesa 2")).toBeInTheDocument();
     expect(screen.getByText("Mesa 3")).toBeInTheDocument();
   });
+
+  it("uses a larger helper typography for compact stat labels", () => {
+    renderWithProviders(<DashboardPage />);
+
+    expect(screen.getByText("En espera")).toHaveClass("text-sm");
+    expect(screen.getByText("Notificados")).toHaveClass("text-sm");
+    expect(screen.getByText("Mesas libres")).toHaveClass("text-sm");
+    expect(screen.getByText("Reservas activas")).toHaveClass("text-sm");
+  });
+
+  it("places stat labels to the right of their numbers", () => {
+    renderWithProviders(<DashboardPage />);
+
+    const waitingLabel = screen.getByText("En espera");
+    const notifiedLabel = screen.getByText("Notificados");
+    const freeTablesLabel = screen.getByText("Mesas libres");
+    const reservationsLabel = screen.getByText("Reservas activas");
+
+    expect(waitingLabel.parentElement).toHaveClass("flex", "items-baseline");
+    expect(waitingLabel.previousElementSibling).toHaveTextContent("1");
+
+    expect(notifiedLabel.parentElement).toHaveClass("flex", "items-baseline");
+    expect(notifiedLabel.previousElementSibling).toHaveTextContent("1");
+
+    expect(freeTablesLabel.parentElement).toHaveClass("flex", "items-baseline");
+    expect(freeTablesLabel.previousElementSibling).toHaveTextContent("2/3");
+
+    expect(reservationsLabel.parentElement).toHaveClass("flex", "items-baseline");
+    expect(reservationsLabel.previousElementSibling).toHaveClass("text-2xl");
+  });
 });

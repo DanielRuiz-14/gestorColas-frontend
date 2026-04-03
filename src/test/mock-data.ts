@@ -101,7 +101,7 @@ export const mockReservations: ReservationResponse[] = [
   {
     id: "r-001",
     restaurantId: "rest-001",
-    tableId: null,
+    tableId: "t-003",
     customerName: "Carlos",
     customerPhone: "+34 611 222 333",
     partySize: 3,

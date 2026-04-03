@@ -48,38 +48,38 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
             <Users className="h-8 w-8 text-blue-500" />
-            <div>
+            <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">{waitingCount}</p>
-              <p className="text-xs text-muted-foreground">En espera</p>
+              <p className="text-sm text-muted-foreground">En espera</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
             <Clock className="h-8 w-8 text-orange-500" />
-            <div>
+            <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">{notifiedCount}</p>
-              <p className="text-xs text-muted-foreground">Notificados</p>
+              <p className="text-sm text-muted-foreground">Notificados</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
             <UtensilsCrossed className="h-8 w-8 text-green-500" />
-            <div>
+            <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">
                 {freeTables}/{tables?.length ?? 0}
               </p>
-              <p className="text-xs text-muted-foreground">Mesas libres</p>
+              <p className="text-sm text-muted-foreground">Mesas libres</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
             <CalendarDays className="h-8 w-8 text-purple-500" />
-            <div>
+            <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">{todayReservations}</p>
-              <p className="text-xs text-muted-foreground">Reservas activas</p>
+              <p className="text-sm text-muted-foreground">Reservas activas</p>
             </div>
           </CardContent>
         </Card>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
                     </span>
                     <div>
                       <span className="text-sm font-medium">{entry.customerName}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="ml-2 text-sm text-muted-foreground">
                         ({entry.partySize}p)
                       </span>
                     </div>
@@ -147,13 +147,13 @@ export default function DashboardPage() {
                   )}
                 >
                   <span className="text-sm font-semibold">{table.label}</span>
-                  <span className="block text-xs text-muted-foreground">
+                  <span className="block text-sm text-muted-foreground">
                     {table.capacity}p
                   </span>
                   {table.reservedSoon && (
                     <Badge
                       variant="destructive"
-                      className="absolute -right-1 -top-1 text-[10px] px-1"
+                      className="absolute -right-1 -top-1 px-1 text-[0.8125rem]"
                     >
                       R
                     </Badge>

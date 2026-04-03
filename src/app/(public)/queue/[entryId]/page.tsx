@@ -206,19 +206,19 @@ export default function QueueTrackingPage() {
               <div className="flex flex-col items-center gap-1">
                 <Hash className="h-5 w-5 text-muted-foreground" />
                 <span className="text-3xl font-bold">{entry.position}</span>
-                <span className="text-xs text-muted-foreground">posición</span>
+                <span className="text-sm text-muted-foreground">posición</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <span className="text-3xl font-bold">
                   ~{entry.estimatedWaitMinutes ?? 0}
                 </span>
-                <span className="text-xs text-muted-foreground">min</span>
+                <span className="text-sm text-muted-foreground">min</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Users className="h-5 w-5 text-muted-foreground" />
                 <span className="text-3xl font-bold">{entry.partySize}</span>
-                <span className="text-xs text-muted-foreground">personas</span>
+                <span className="text-sm text-muted-foreground">personas</span>
               </div>
             </CardContent>
           </Card>

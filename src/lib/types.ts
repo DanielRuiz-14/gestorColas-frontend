@@ -154,6 +154,7 @@ export interface CreateReservationRequest {
   customerPhone?: string;
   partySize: number;
   reservedAt: string;
+  tableId: string;
   notes?: string;
 }
 

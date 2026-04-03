@@ -49,10 +49,16 @@ export function useTables() {
 
 export function useAvailableTables(groupSize: number) {
   const { restaurantId } = useAuth();
-  return useStaffSWR<TableResponse[]>(
+  return useSWR<TableResponse[]>(
     restaurantId && groupSize > 0
       ? `/restaurants/${restaurantId}/tables/available?groupSize=${groupSize}`
       : null,
+    staffGet,
+    {
+      revalidateOnFocus: true,
+      revalidateOnMount: true,
+      dedupingInterval: 0,
+    },
   );
 }
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useQueue, useAvailableTables } from "@/lib/hooks";
+import { useQueue, useTables } from "@/lib/hooks";
 import { useQueueUpdates } from "@/lib/use-stomp";
 import { staffPost } from "@/lib/api";
 import type { QueueEntryResponse, QueueEntryStatus } from "@/lib/types";
@@ -13,8 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -22,13 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Bell,
   SkipForward,
@@ -38,6 +29,7 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TableSeatPicker } from "@/components/table-seat-picker";
 
 const statusBadge: Record<QueueEntryStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   WAITING: { label: "Esperando", variant: "secondary" },
@@ -56,7 +48,7 @@ export default function QueuePage() {
   const [walkInName, setWalkInName] = useState("");
   const [walkInSize, setWalkInSize] = useState(2);
 
-  const { data: availableTables } = useAvailableTables(seatEntry?.partySize ?? 0);
+  const { data: tables, mutate: mutateTables } = useTables();
 
   // Real-time updates
   useQueueUpdates(
@@ -82,6 +74,7 @@ export default function QueuePage() {
   async function handleSeat(tableId: string) {
     if (!seatEntry) return;
     await action(seatEntry.id, "seat", { tableId });
+    mutateTables();
     setSeatEntry(null);
     toast.success("Cliente sentado");
   }
@@ -105,9 +98,9 @@ export default function QueuePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Cola</h1>
-        <Button onClick={() => setWalkInOpen(true)} size="sm">
+        <Button onClick={() => setWalkInOpen(true)} size="sm" className="w-full justify-center sm:w-auto">
           <UserPlus className="mr-2 h-4 w-4" />
           Walk-in
         </Button>
@@ -157,7 +150,7 @@ export default function QueuePage() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium truncate">{entry.customerName}</span>
                     {entry.walkIn && (
-                      <Badge variant="outline" className="text-xs">walk-in</Badge>
+                      <Badge variant="outline">walk-in</Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -168,7 +161,7 @@ export default function QueuePage() {
                     {entry.estimatedWaitMinutes != null && (
                       <span>~{entry.estimatedWaitMinutes} min</span>
                     )}
-                    <Badge variant={badge.variant} className="text-xs">
+                    <Badge variant={badge.variant}>
                       {badge.label}
                     </Badge>
                   </div>
@@ -227,24 +220,12 @@ export default function QueuePage() {
               Sentar a {seatEntry?.customerName} (grupo de {seatEntry?.partySize})
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            {availableTables?.length === 0 && (
-              <p className="text-sm text-muted-foreground">No hay mesas disponibles para este grupo</p>
-            )}
-            {availableTables?.map((table) => (
-              <Button
-                key={table.id}
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => handleSeat(table.id)}
-              >
-                <span>{table.label}</span>
-                <span className="text-muted-foreground">
-                  {table.capacity} personas
-                </span>
-              </Button>
-            ))}
-          </div>
+          <TableSeatPicker
+            partySize={seatEntry?.partySize ?? 0}
+            tables={tables}
+            onSelect={handleSeat}
+            emptyMessage="No hay mesas libres disponibles para sentar a este grupo."
+          />
         </DialogContent>
       </Dialog>
 

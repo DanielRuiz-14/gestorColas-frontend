@@ -130,7 +130,7 @@ export default function RestaurantPage() {
                 <span className="text-2xl font-bold">
                   {queueStatus.waitingCount}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   en espera
                 </span>
               </div>
@@ -139,7 +139,7 @@ export default function RestaurantPage() {
                 <span className="text-2xl font-bold">
                   ~{queueStatus.estimatedWaitMinutes} min
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   tiempo estimado
                 </span>
               </div>
