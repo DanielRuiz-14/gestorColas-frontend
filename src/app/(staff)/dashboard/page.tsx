@@ -56,7 +56,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
-            <Clock className="h-8 w-8 text-orange-500" />
+            <Clock className="h-8 w-8 text-blue-500" />
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">{notifiedCount}</p>
               <p className="text-sm text-muted-foreground">Notificados</p>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
-            <UtensilsCrossed className="h-8 w-8 text-green-500" />
+            <UtensilsCrossed className="h-8 w-8 text-blue-500" />
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">
                 {freeTables}/{tables?.length ?? 0}
@@ -76,7 +76,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 py-4">
-            <CalendarDays className="h-8 w-8 text-purple-500" />
+            <CalendarDays className="h-8 w-8 text-blue-500" />
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold">{todayReservations}</p>
               <p className="text-sm text-muted-foreground">Reservas activas</p>
