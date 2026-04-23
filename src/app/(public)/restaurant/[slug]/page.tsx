@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Clock } from "lucide-react";
 import { toast } from "sonner";
 
+const STATUS_REFRESH_DEBOUNCE_MS = 300;
+
 export default function RestaurantPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
@@ -46,7 +48,9 @@ export default function RestaurantPage() {
       try {
         const [rest, status] = await Promise.all([
           publicGet<PublicRestaurantResponse>(`/restaurants/${slug}`),
-          publicGet<QueueStatusResponse>(`/restaurants/${slug}/queue/status`),
+          publicGet<QueueStatusResponse>(
+            `/restaurants/${slug}/queue/status?partySize=${partySize}`,
+          ),
         ]);
         setRestaurant(rest);
         setQueueStatus(status);
@@ -57,7 +61,24 @@ export default function RestaurantPage() {
       }
     }
     load();
+    // Initial load only — partySize updates use the debounced effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
+
+  useEffect(() => {
+    if (loading || !restaurant) return;
+    const handle = window.setTimeout(async () => {
+      try {
+        const status = await publicGet<QueueStatusResponse>(
+          `/restaurants/${slug}/queue/status?partySize=${partySize}`,
+        );
+        setQueueStatus(status);
+      } catch {
+        // ignore transient errors during typing
+      }
+    }, STATUS_REFRESH_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [partySize, slug, loading, restaurant]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -108,6 +129,11 @@ export default function RestaurantPage() {
     );
   }
 
+  const estimatedLabel =
+    queueStatus?.estimatedWaitMinutes != null
+      ? `~${queueStatus.estimatedWaitMinutes} min`
+      : "—";
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-muted/40 px-4 py-8">
       <div className="w-full max-w-md space-y-4">
@@ -124,31 +150,49 @@ export default function RestaurantPage() {
         {/* Queue status */}
         {queueStatus && (
           <Card>
-            <CardContent className="flex items-center justify-around py-6">
-              <div className="flex flex-col items-center gap-1">
-                <Users className="h-6 w-6 text-muted-foreground" />
-                <span className="text-2xl font-bold">
-                  {queueStatus.waitingCount}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  en espera
-                </span>
+            <CardContent className="space-y-4 py-6">
+              <div className="flex items-center justify-around">
+                <div className="flex flex-col items-center gap-1">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-2xl font-bold">
+                    {queueStatus.waitingCount}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    en espera
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <Clock className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-2xl font-bold">{estimatedLabel}</span>
+                  <span className="text-sm text-muted-foreground">
+                    tiempo estimado
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <Badge
+                    variant={queueStatus.queueOpen ? "default" : "destructive"}
+                  >
+                    {queueStatus.queueOpen ? "Abierta" : "Llena"}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex flex-col items-center gap-1">
-                <Clock className="h-6 w-6 text-muted-foreground" />
-                <span className="text-2xl font-bold">
-                  ~{queueStatus.estimatedWaitMinutes} min
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  tiempo estimado
-                </span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <Badge
-                  variant={queueStatus.queueOpen ? "default" : "destructive"}
-                >
-                  {queueStatus.queueOpen ? "Abierta" : "Llena"}
-                </Badge>
+              <div className="space-y-1">
+                <Label htmlFor="preview-party-size">Personas en tu grupo</Label>
+                <Input
+                  id="preview-party-size"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={partySize}
+                  onChange={(e) =>
+                    setPartySize(Math.max(1, Number(e.target.value) || 1))
+                  }
+                />
+                {queueStatus.estimatedWaitMinutes == null && (
+                  <p className="text-xs text-muted-foreground">
+                    No hay mesa compatible para ese tamaño en este momento.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -171,7 +215,8 @@ export default function RestaurantPage() {
             <CardHeader>
               <CardTitle>Unirse a la cola</CardTitle>
               <CardDescription>
-                Introduce tus datos para reservar tu puesto
+                Confirma tus datos para reservar tu puesto ({partySize}{" "}
+                {partySize === 1 ? "persona" : "personas"})
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -183,18 +228,6 @@ export default function RestaurantPage() {
                     placeholder="Tu nombre"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="partySize">Personas</Label>
-                  <Input
-                    id="partySize"
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={partySize}
-                    onChange={(e) => setPartySize(Number(e.target.value))}
                     required
                   />
                 </div>

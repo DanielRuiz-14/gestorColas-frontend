@@ -54,6 +54,8 @@ export interface RestaurantConfigResponse {
   avgTableDurationMinutes: number;
   reservationProtectionWindowMinutes: number;
   maxQueueSize: number | null;
+  cleaningDurationMinutes: number;
+  waitBufferMinutes: number;
 }
 
 // ── Tables ───────────────────────────────────────────────────────────────────
@@ -83,7 +85,7 @@ export type QueueEntryStatus =
 
 export interface QueueStatusResponse {
   waitingCount: number;
-  estimatedWaitMinutes: number;
+  estimatedWaitMinutes: number | null;
   queueOpen: boolean;
 }
 
@@ -97,7 +99,7 @@ export interface JoinQueueResponse {
   entryId: string;
   accessToken: string;
   position: number;
-  estimatedWaitMinutes: number;
+  estimatedWaitMinutes: number | null;
 }
 
 export interface QueueEntryResponse {

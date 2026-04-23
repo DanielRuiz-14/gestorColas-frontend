@@ -92,7 +92,44 @@ describe("RestaurantPage", () => {
 
     expect(screen.getByText("Unirse a la cola")).toBeInTheDocument();
     expect(screen.getByLabelText("Nombre")).toBeInTheDocument();
-    expect(screen.getByLabelText("Personas")).toBeInTheDocument();
+    // partySize selector lives in the status card now; it stays mounted
+    // alongside the join form.
+    expect(screen.getByLabelText("Personas en tu grupo")).toBeInTheDocument();
+  });
+
+  it("shows '—' when estimatedWaitMinutes is null", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            name: "Mixed",
+            slug: "mixed",
+            description: null,
+            openingHours: {},
+            active: true,
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            waitingCount: 1,
+            estimatedWaitMinutes: null,
+            queueOpen: true,
+          }),
+      });
+
+    renderWithProviders(<RestaurantPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("—")).toBeInTheDocument();
+      expect(
+        screen.getByText(/No hay mesa compatible/i),
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows queue full state", async () => {
